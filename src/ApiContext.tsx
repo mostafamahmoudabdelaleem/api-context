@@ -1,4 +1,4 @@
-import React, { createContext, useReducer, useContext, PropsWithChildren, useEffect } from 'react';
+import React, { createContext, useReducer, useContext, PropsWithChildren } from 'react';
 import axios from 'axios'
 import { PopupContext } from './PopupContext';
 import moment from 'moment'
@@ -24,7 +24,8 @@ type APIContextRequestType = {
 type APIContextType = {
     State: APIContextStateType,
     Dispatcher: React.Dispatch<APIContextActionType>,
-    Post: (APIContextRequest: APIContextRequestType) => Promise<any>
+    Post: (APIContextRequest: APIContextRequestType) => Promise<any>,
+    Get: (APIContextRequest: APIContextRequestType) => Promise<any>
 }
 const initState: APIContextStateType = {
     API_URL: '',
@@ -39,7 +40,8 @@ const initState: APIContextStateType = {
 export const APIContext = createContext<APIContextType>({
     State: initState,
     Dispatcher: (_: APIContextActionType) => { },
-    Post: () => { return new Promise(resolve => resolve('Done')) }
+    Post: () => { return new Promise(resolve => resolve('Done')) },
+    Get: () => { return new Promise(resolve => resolve('Done')) }
 });
 const APIReducer = (state: APIContextStateType, action: APIContextActionType) => {
     switch (action.type) {
@@ -62,19 +64,10 @@ const APIReducer = (state: APIContextStateType, action: APIContextActionType) =>
 
 const APIProvider: React.FC<PropsWithChildren<{ BaseURL?: string; }>> = ({ children, BaseURL }) => {
     const { ToggleLoader } = useContext(PopupContext)
-    const [state, dispatch] = useReducer(APIReducer, initState);
-
-    useEffect(() => {
-        if (BaseURL) {
-            dispatch({
-                type: 'INITIALIZE',
-                payload: {
-                    ...initState,
-                    API_URL: BaseURL
-                }
-            })
-        }
-    }, [BaseURL])
+    const [state, dispatch] = useReducer(
+        APIReducer,
+        { ...initState, API_URL: BaseURL }
+    );
 
 
     const postCall = ({ path, body = {}, headers, showLoader = true }: APIContextRequestType): Promise<any> => {
@@ -114,6 +107,43 @@ const APIProvider: React.FC<PropsWithChildren<{ BaseURL?: string; }>> = ({ child
         })
     }
 
+    const getCall = ({ path, body = {}, headers, showLoader = true }: APIContextRequestType): Promise<any> => {
+        return new Promise(async (resolve, reject) => {
+            const _headers: any = {
+                ...headers,
+                token: state.TOKEN,
+                apikey: state.API_KEY
+            }
+
+            // console.log('[postCall API Request URL]:', state.API_URL + path)
+            // console.log('[postCall API Request Body]:', _body)
+            // console.log('[postCall API Request Headers]:', _headers)
+
+            const _axios = axios.create({
+                baseURL: state.API_URL,
+                headers: _headers,
+                timeout: state.REQUEST_TIMEOUT
+            });
+
+            let st = Date.now()
+            try {
+                if (showLoader) {
+                    ToggleLoader('show')
+                }
+                let resp = await _axios.get(path, body)
+                ToggleLoader('hide')
+                let time = Date.now() - st;
+                let formatedTime = moment(moment.utc(time)).format(time > (60 * 1000) ? 'mm:ss SSS' : 'ss.SSS')
+                ValidateResponse(resp, path, formatedTime, resolve, reject)
+            } catch (err) {
+                ToggleLoader('hide')
+                let time = Date.now() - st;
+                let formatedTime = moment(moment.utc(time)).format(time > (60 * 1000) ? 'mm:ss SSS' : 'ss.SSS')
+                ValidateResponse(err, path, formatedTime, resolve, reject)
+            }
+        })
+    }
+
     // Validation Checks Methods
     const ValidateResponse = (
         resp: any,
@@ -122,8 +152,8 @@ const APIProvider: React.FC<PropsWithChildren<{ BaseURL?: string; }>> = ({ child
         callback = (_: any) => { },
         fallback = (_: any) => { }
     ) => {
-        if (resp.status === 200) {
-            console.log(`[ValidateResponse URL - Status - ResponseCode - Time] => ${resp.request.responseURL} - ${resp.request.status} - ${resp.data.responseCode} - ${time}`)
+        if (resp.status === 200 || resp.status === 201) {
+            console.log(`[ValidateResponse URL - Status - Time] => ${resp.request.responseURL} - ${resp.request.status} - ${time}`)
             callback(resp.data)
         }
         else {
@@ -151,6 +181,7 @@ const APIProvider: React.FC<PropsWithChildren<{ BaseURL?: string; }>> = ({ child
         <APIContext.Provider value={{
             State: state,
             Post: postCall,
+            Get: getCall,
             Dispatcher: dispatch
         }}>
             {children}
