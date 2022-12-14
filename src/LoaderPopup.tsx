@@ -4,7 +4,13 @@ import { StyleSheet, TouchableOpacity, ActivityIndicator } from 'react-native'
 const Popup = ({
     visible = false,
     size = 50,
-    backgroundColor = 'rgba(0,0,0,.7)'
+    backgroundColor = 'rgba(0,0,0,.7)',
+    customLoader = null
+}: {
+    visible: boolean,
+    size: number,
+    backgroundColor: string,
+    customLoader: React.ReactNode | null
 }) => {
     if (visible) {
         return (
@@ -22,7 +28,7 @@ const Popup = ({
                     style={[styles.card]}
                     onPress={() => {/* Press inside card */ }}
                 >
-                    <ActivityIndicator size={size} color={'#f1f1f3'} />
+                    {customLoader ? customLoader : <ActivityIndicator size={size} color={'#f1f1f3'} />}
                 </TouchableOpacity>
             </TouchableOpacity>
         )

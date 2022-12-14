@@ -21,7 +21,7 @@ const initalState: PopupContextStateType = {
 }
 export const PopupContext = createContext<PopupContextType>({
     State: initalState,
-    ToggleLoader: (_p1, _p2) => {}
+    ToggleLoader: (_p1, _p2) => { }
 });
 
 const PopupReducer = (state: PopupContextStateType, action: PopupContextActionType) => {
@@ -47,7 +47,13 @@ const PopupReducer = (state: PopupContextStateType, action: PopupContextActionTy
     }
 };
 
-const PopupProvider = ({ children }: { children: React.ReactNode }) => {
+const PopupProvider = ({
+    children,
+    customLoader
+}: {
+    children: React.ReactNode,
+    customLoader: React.ReactNode | null
+}) => {
     const [state, dispatch] = useReducer(PopupReducer, initalState)
 
     const hideLoader = () => {
@@ -85,7 +91,12 @@ const PopupProvider = ({ children }: { children: React.ReactNode }) => {
             }}
         >
             {children}
-            <LoaderPopup visible={state.loaderVisible} backgroundColor={state.backgroundColor} />
+            <LoaderPopup
+                visible={state.loaderVisible}
+                backgroundColor={state.backgroundColor}
+                size={50}
+                customLoader={customLoader}
+            />
         </PopupContext.Provider>
     )
 }
