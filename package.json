@@ -1,7 +1,7 @@
 {
   "name": "react-native-api-context",
   "version": "1.0.1",
-  "description": "test",
+  "description": "An react native context to manage all api calls in one place",
   "main": "lib/commonjs/index",
   "module": "lib/module/index",
   "types": "lib/typescript/index.d.ts",
@@ -38,7 +38,11 @@
   "keywords": [
     "react-native",
     "ios",
-    "android"
+    "android",
+    "axios",
+    "API",
+    "POST",
+    "GET"
   ],
   "repository": "https://github.com/mostafamahmoudabdelaleem/react-native-api-context",
   "author": "Mostafa Mahmoud <mostafamahmoudabdelaleem@gmail.com> (https://github.com/mostafamahmoudabdelaleem)",
