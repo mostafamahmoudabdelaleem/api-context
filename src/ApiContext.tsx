@@ -1,4 +1,4 @@
-import React, { createContext, useReducer, useContext, PropsWithChildren } from 'react';
+import React, { createContext, useReducer, useContext, PropsWithChildren, useRef } from 'react';
 import axios from 'axios'
 import { PopupContext } from './PopupContext';
 import moment from 'moment'
@@ -68,6 +68,7 @@ const APIProvider: React.FC<PropsWithChildren<{ BaseURL?: string; }>> = ({ child
         APIReducer,
         { ...initState, API_URL: BaseURL }
     );
+    const loadersStack = useRef<Map<string, string>>(new Map<string, string>())
 
 
     const postCall = ({ path, body = {}, headers, showLoader = true }: APIContextRequestType): Promise<any> => {
@@ -91,15 +92,26 @@ const APIProvider: React.FC<PropsWithChildren<{ BaseURL?: string; }>> = ({ child
             let st = Date.now()
             try {
                 if (showLoader) {
+                    loadersStack.current.set(path, path)
                     ToggleLoader('show')
                 }
                 let resp = await _axios.post(path, body)
-                ToggleLoader('hide')
+                if (showLoader) {
+                    loadersStack.current.delete(path)
+                    if (loadersStack.current.size === 0) {
+                        ToggleLoader('hide')
+                    }
+                }
                 let time = Date.now() - st;
                 let formatedTime = moment(moment.utc(time)).format(time > (60 * 1000) ? 'mm:ss SSS' : 'ss.SSS')
                 ValidateResponse(resp, path, formatedTime, resolve, reject)
             } catch (err) {
-                ToggleLoader('hide')
+                if (showLoader) {
+                    loadersStack.current.delete(path)
+                    if (loadersStack.current.size === 0) {
+                        ToggleLoader('hide')
+                    }
+                }
                 let time = Date.now() - st;
                 let formatedTime = moment(moment.utc(time)).format(time > (60 * 1000) ? 'mm:ss SSS' : 'ss.SSS')
                 ValidateResponse(err, path, formatedTime, resolve, reject)
@@ -128,15 +140,26 @@ const APIProvider: React.FC<PropsWithChildren<{ BaseURL?: string; }>> = ({ child
             let st = Date.now()
             try {
                 if (showLoader) {
+                    loadersStack.current.set(path, path)
                     ToggleLoader('show')
                 }
                 let resp = await _axios.get(path, body)
-                ToggleLoader('hide')
+                if (showLoader) {
+                    loadersStack.current.delete(path)
+                    if (loadersStack.current.size === 0) {
+                        ToggleLoader('hide')
+                    }
+                }
                 let time = Date.now() - st;
                 let formatedTime = moment(moment.utc(time)).format(time > (60 * 1000) ? 'mm:ss SSS' : 'ss.SSS')
                 ValidateResponse(resp, path, formatedTime, resolve, reject)
             } catch (err) {
-                ToggleLoader('hide')
+                if (showLoader) {
+                    loadersStack.current.delete(path)
+                    if (loadersStack.current.size === 0) {
+                        ToggleLoader('hide')
+                    }
+                }
                 let time = Date.now() - st;
                 let formatedTime = moment(moment.utc(time)).format(time > (60 * 1000) ? 'mm:ss SSS' : 'ss.SSS')
                 ValidateResponse(err, path, formatedTime, resolve, reject)
