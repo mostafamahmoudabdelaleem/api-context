@@ -1,2 +1,2 @@
-export { default as APIContextProvider } from './APIContextProvider'
-export { APIContext } from './ApiContext'
+export { default as APIContextProvider } from './APIContextProvider';
+export { APIContext } from './ApiContext';
