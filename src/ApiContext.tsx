@@ -40,7 +40,7 @@ const initState: APIContextStateType = {
   TOKEN: '',
   REQUEST_TIMEOUT: 15000,
   TOKEN_HEADER_KEY: 'token',
-  HEADERS: {}
+  HEADERS: {},
 };
 
 export const APIContext = createContext<APIContextType>({
