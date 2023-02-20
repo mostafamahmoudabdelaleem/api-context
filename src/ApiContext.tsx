@@ -13,7 +13,9 @@ type APIContextStateType = {
   API_URL: string;
   API_KEY: string;
   TOKEN: string;
+  TOKEN_HEADER_KEY: string;
   REQUEST_TIMEOUT: number;
+  HEADERS: any;
 };
 type APIContextActionType = {
   type: 'UPDATE_TOKEN' | 'INITIALIZE';
@@ -37,6 +39,8 @@ const initState: APIContextStateType = {
   API_KEY: '',
   TOKEN: '',
   REQUEST_TIMEOUT: 15000,
+  TOKEN_HEADER_KEY: 'token',
+  HEADERS: {}
 };
 
 export const APIContext = createContext<APIContextType>({
@@ -91,13 +95,10 @@ const APIProvider: React.FC<PropsWithChildren<{ BaseURL?: string }>> = ({
     return new Promise(async (resolve, reject) => {
       const _headers: any = {
         ...headers,
-        token: state.TOKEN,
+        ...state.HEADERS,
+        [`${state.TOKEN_HEADER_KEY}`]: state.TOKEN,
         apikey: state.API_KEY,
       };
-
-      // console.log('[postCall API Request URL]:', state.API_URL + path)
-      // console.log('[postCall API Request Body]:', _body)
-      // console.log('[postCall API Request Headers]:', _headers)
 
       const _axios = axios.create({
         baseURL: state.API_URL,
@@ -148,13 +149,10 @@ const APIProvider: React.FC<PropsWithChildren<{ BaseURL?: string }>> = ({
     return new Promise(async (resolve, reject) => {
       const _headers: any = {
         ...headers,
-        token: state.TOKEN,
+        ...state.HEADERS,
+        [`${state.TOKEN_HEADER_KEY}`]: state.TOKEN,
         apikey: state.API_KEY,
       };
-
-      // console.log('[postCall API Request URL]:', state.API_URL + path)
-      // console.log('[postCall API Request Body]:', _body)
-      // console.log('[postCall API Request Headers]:', _headers)
 
       const _axios = axios.create({
         baseURL: state.API_URL,
